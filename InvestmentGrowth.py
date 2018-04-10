@@ -3,7 +3,7 @@ from tkinter import *
 import numpy as np
 from matplotlib.ticker import FuncFormatter
 
-fields = ('Annual Contribution', 'Growth Rate', 'Current Age', 'Retirement Age')
+fields = ('Annual Contribution', 'Growth Rate', 'Current Age', 'Retirement Age','Current Portfolio Value','Retirement Income')
 
 def makeform(root, fields):
    entries = {}
@@ -19,18 +19,23 @@ def makeform(root, fields):
    return entries
 
 def CalculatePortfolio(entries):
-    contribution = (int(entries['Annual Contribution'].get()))
+    contribution = (float(entries['Annual Contribution'].get()))
     growthRate = (float(entries['Growth Rate'].get()))
     currentAge = (int(entries['Current Age'].get()))
     retirementAge = (int(entries['Retirement Age'].get()))
-    balance = 0
-    portfolioSpread = [balance]
+    startingValue = (float(entries['Current Portfolio Value'].get()))
+    portfolioSpread = [startingValue]
     ageSpread = [currentAge]
+    balance = portfolioSpread[0]
 
-    while (currentAge <= retirementAge):
+    while (currentAge < retirementAge+1):
         balance = balance + contribution
         balance = balance + balance*growthRate
         currentAge = currentAge + 1
+        if currentAge == retirementAge:
+            swr = 0.03
+            maxIncome = balance*swr
+            entries['Retirement Income'].insert(0,str(round(maxIncome)))
 
         ageSpread.append(currentAge)
         portfolioSpread.append(balance)
@@ -54,6 +59,7 @@ def millions(x, pos):
 
 if __name__ == '__main__':
    root = Tk()
+   root.wm_title("Portfolio Growth Estimator")
    ents = makeform(root, fields)
    root.bind('<Return>', (lambda event, e=ents: fetch(e)))
    b1 = Button(root, text='Calculate',command=(lambda e=ents: CalculatePortfolio(e)))
