@@ -35,7 +35,8 @@ def CalculatePortfolio(entries):
         if currentAge == retirementAge:
             swr = 0.03
             maxIncome = balance*swr
-            entries['Retirement Income'].insert(0,str(round(maxIncome)))
+            print("MaxIncome: " , maxIncome)
+            entries['Retirement Income'].insert(0,str(round(maxIncome,2)))
 
         ageSpread.append(currentAge)
         portfolioSpread.append(balance)
