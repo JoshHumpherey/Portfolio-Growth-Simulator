@@ -1,9 +1,14 @@
-import matplotlib.pyplot as plt
-from tkinter import *
-import numpy as np
 from matplotlib.ticker import FuncFormatter
+from tkinter import *
+import matplotlib
+matplotlib.use('TkAgg')
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
+import numpy as np
 
 fields = ('Annual Contribution', 'Growth Rate', 'Current Age', 'Retirement Age','Current Portfolio Value','Retirement Income')
+ageSpread = [15]
+portfolioSpread = [0]
 
 def makeform(root, fields):
    entries = {}
@@ -39,34 +44,41 @@ def CalculatePortfolio(entries):
 
         ageSpread.append(currentAge)
         portfolioSpread.append(balance)
-
     PlotChart(ageSpread,portfolioSpread)
 
 def PlotChart(ageSpread,portfolioSpread):
-        formatter = FuncFormatter(millions)
-        fig,ax = plt.subplots()
-        ax.yaxis.set_major_formatter(formatter)
-        plt.bar(ageSpread,portfolioSpread)
-        plt.xlabel('Age')
-        plt.ylabel('Portfolio Value')
-        plt.title('Investment Growth Calculator')
-        plt.show()
+    plt.bar(ageSpread,portfolioSpread)
+    plt.xlabel('Age')
+    plt.ylabel('Portfolio Value')
+    plt.title('Investment Growth Calculator')
+    fig.canvas.draw()
 
 def millions(x, pos):
     'The two args are the value and tick position'
     return '$%1.1fM' % (x*1e-6)
 
+def on_key_event(event):
+    print('you pressed %s' % event.key)
+    key_press_handler(event, canvas, toolbar)
+
+    canvas.mpl_connect('key_press_event', on_key_event)
 
 if __name__ == '__main__':
-   root = Tk()
-   root.wm_title("Portfolio Growth Estimator")
-   ents = makeform(root, fields)
-   root.bind('<Return>', (lambda event, e=ents: fetch(e)))
-   b1 = Button(root, text='Calculate',command=(lambda e=ents: CalculatePortfolio(e)))
-
-
-
-   b1.pack(side=LEFT, padx=5, pady=5)
-   b2 = Button(root, text='Quit', command=root.quit)
-   b2.pack(side=LEFT, padx=5, pady=5)
-   root.mainloop()
+    root = Tk()
+    root.wm_title("Portfolio Growth Estimator")
+    fig = plt.figure(1)
+    plt.ion()
+    plt.bar(ageSpread,portfolioSpread)
+    plt.xlabel('Age')
+    plt.ylabel('Portfolio Value')
+    plt.title('Investment Growth Calculator')
+    canvas = FigureCanvasTkAgg(fig, master=root)
+    plot_widget = canvas.get_tk_widget()
+    plot_widget.pack()
+    ents = makeform(root, fields)
+    root.bind('<Return>', (lambda event, e=ents: fetch(e)))
+    b1 = Button(root, text='Calculate',command=(lambda e=ents: CalculatePortfolio(e)))
+    b1.pack(side=BOTTOM, padx=5, pady=5)
+    b2 = Button(root, text='Quit', command=root.quit)
+    b2.pack(side=BOTTOM, padx=5, pady=5)
+    root.mainloop()
