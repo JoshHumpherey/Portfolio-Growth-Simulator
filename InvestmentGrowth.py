@@ -3,10 +3,15 @@ import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
+import random
 
-fields = ('Annual Contribution', 'Growth Rate', 'Current Age', 'Retirement Age','Current Portfolio Value')
+fields = ('Annual Contribution', 'Current Age', 'Retirement Age','Current Portfolio Value')
 ageSpread = [15]
 portfolioSpread = [0]
+
+with open('HistoricalReturns.txt') as file:
+    stockData = file.readlines()
+
 
 def makeform(root, fields):
    entries = {}
@@ -23,17 +28,17 @@ def makeform(root, fields):
 
 def CalculatePortfolio(entries):
     contribution = (float(entries['Annual Contribution'].get()))
-    growthRate = (float(entries['Growth Rate'].get()))
     currentAge = (int(entries['Current Age'].get()))
     retirementAge = (int(entries['Retirement Age'].get()))
     startingValue = (float(entries['Current Portfolio Value'].get()))
     portfolioSpread = [startingValue]
     ageSpread = [currentAge]
-    balance = portfolioSpread[0]
+    balance = float(portfolioSpread[0])
 
     while (currentAge < retirementAge+1):
+        randomReturnRate = FindRandomReturnRate()
         balance = balance + contribution
-        balance = balance + balance*growthRate
+        balance = balance + balance*randomReturnRate
         currentAge = currentAge + 1
         ageSpread.append(currentAge)
         portfolioSpread.append(balance)
@@ -43,6 +48,10 @@ def CalculatePortfolio(entries):
             finalBalance = Label(root, text=balanceText)
             finalBalance.pack(side=BOTTOM)
     PlotChart(ageSpread,portfolioSpread)
+
+def FindRandomReturnRate():
+    randomYear = random.randint(1,88)
+    return float(stockData[randomYear])
 
 def PlotChart(ageSpread,portfolioSpread):
     try:
