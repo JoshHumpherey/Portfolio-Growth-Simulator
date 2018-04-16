@@ -4,8 +4,9 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import random
+import numpy as np
 
-fields = ('Annual Contribution', 'Current Age', 'Retirement Age','Current Portfolio Value')
+fields = ('Annual Contribution', 'Current Age', 'Retirement Age','Current Portfolio Value','# of Simulations')
 ageSpread = [15]
 portfolioSpread = [0]
 strategies = {'Fixed Allocations', 'Shifting Bond Allocations'}
@@ -29,28 +30,45 @@ def makeform(root, fields):
       entries[field] = ent
    return entries
 
+
 def CalculatePortfolio(entries):
     contribution = (float(entries['Annual Contribution'].get()))
     currentAge = (int(entries['Current Age'].get()))
     retirementAge = (int(entries['Retirement Age'].get()))
     startingValue = (float(entries['Current Portfolio Value'].get()))
+    numberOfSimulations = (int(entries['# of Simulations'].get()))
     portfolioSpread = [startingValue]
     ageSpread = [currentAge]
     balance = float(portfolioSpread[0])
+    matrixLength = retirementAge - currentAge
+    matrixHeight = numberOfSimulations
+    dataMatrix = CreateMatrix(matrixLength,matrixHeight)
+    simCount = 0
+    while (simCount < numberOfSimulations):
+        iterationAge = currentAge
+        iterationBalance = balance
+        lengthOffset = currentAge
+        while (iterationAge < retirementAge):
+            randomReturnRate = FindRandomStockRate()
+            iterationBalance = iterationBalance + contribution
+            iterationBalance = iterationBalance + iterationBalance*randomReturnRate
+            iterationAge = iterationAge + 1
+            dataMatrix[simCount][iterationAge-lengthOffset-1] = iterationBalance
 
-    while (currentAge < retirementAge+1):
-        randomReturnRate = FindRandomStockRate()
-        balance = balance + contribution
-        balance = balance + balance*randomReturnRate
-        currentAge = currentAge + 1
-        ageSpread.append(currentAge)
-        portfolioSpread.append(balance)
-        if (currentAge == retirementAge):
-            index = len(portfolioSpread)-1
-            balanceText = "Balance at Retirement: " + str(int(round(portfolioSpread[index])))
-            finalBalance = Label(root, text=balanceText)
-            finalBalance.pack(side=BOTTOM)
-    PlotChart(ageSpread,portfolioSpread)
+        plt.plot(dataMatrix[simCount][:])
+        simCount = simCount + 1
+
+def CreateMatrix(length,height):
+    w,h = length,height
+    Matrix = [[0 for x in range(w)] for y in range(h)]
+    #print(np.matrix(Matrix))
+    return Matrix
+
+def PrintBalance(portfolioSpread):
+        index = len(portfolioSpread)-1
+        balanceText = "Balance at Retirement: " + str(int(round(portfolioSpread[index])))
+        finalBalance = Label(root, text=balanceText)
+        finalBalance.pack(side=BOTTOM)
 
 def FindRandomStockRate():
     randomYear = random.randint(1,88)
@@ -62,7 +80,7 @@ def FindRandomBondRate():
 
 def PlotChart(ageSpread,portfolioSpread):
     try:
-        plt.bar(ageSpread,portfolioSpread)
+        plt.plot(ageSpread,portfolioSpread)
         plt.xlabel('Age')
         plt.ylabel('Portfolio Value')
         plt.title('Investment Growth Calculator')
@@ -70,10 +88,17 @@ def PlotChart(ageSpread,portfolioSpread):
     except:
         print("")
 
+
+def CreateForm(root):
+    CreateInitialFigure()
+    ents = makeform(root, fields)
+    CreateButtons(ents)
+    CreateAllocationPopup()
+
 def CreateInitialFigure():
     fig = plt.figure(1)
     plt.ion()
-    plt.bar(ageSpread,portfolioSpread)
+    plt.plot(ageSpread,portfolioSpread)
     plt.xlabel('Age')
     plt.ylabel('Portfolio Value')
     plt.title('Investment Growth Calculator')
@@ -88,19 +113,15 @@ def CreateAllocationPopup():
     Label(root, text='Portfolio Strategy')
     popupMenu.pack(side=BOTTOM, padx=5,pady=5)
 
-def CreateForm(root):
-    ents = makeform(root, fields)
-
+def CreateButtons(ents):
     b2 = Button(root, text='Quit', command=root.quit)
     b2.pack(side=BOTTOM, padx=5, pady=5)
     b1 = Button(root, text='Calculate',command=(lambda e=ents: CalculatePortfolio(e)))
     b1.pack(side=BOTTOM, padx=5, pady=5)
 
-    CreateAllocationPopup()
 
 if __name__ == '__main__':
     root = Tk()
     root.wm_title("Portfolio Growth Estimator")
-    CreateInitialFigure()
     CreateForm(root)
     root.mainloop()
