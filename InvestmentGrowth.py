@@ -4,7 +4,7 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 
-fields = ('Annual Contribution', 'Growth Rate', 'Current Age', 'Retirement Age','Current Portfolio Value','Retirement Income')
+fields = ('Annual Contribution', 'Growth Rate', 'Current Age', 'Retirement Age','Current Portfolio Value')
 ageSpread = [15]
 portfolioSpread = [0]
 
@@ -35,22 +35,24 @@ def CalculatePortfolio(entries):
         balance = balance + contribution
         balance = balance + balance*growthRate
         currentAge = currentAge + 1
-        if currentAge == retirementAge:
-            swr = 0.03
-            maxIncome = balance*swr
-            print("MaxIncome: " , maxIncome)
-            entries['Retirement Income'].insert(0,str(round(maxIncome,2)))
-
         ageSpread.append(currentAge)
         portfolioSpread.append(balance)
+        if (currentAge == retirementAge):
+            index = len(portfolioSpread)-1
+            balanceText = "Balance at Retirement: " + str(int(round(portfolioSpread[index])))
+            finalBalance = Label(root, text=balanceText)
+            finalBalance.pack(side=BOTTOM)
     PlotChart(ageSpread,portfolioSpread)
 
 def PlotChart(ageSpread,portfolioSpread):
-    plt.bar(ageSpread,portfolioSpread)
-    plt.xlabel('Age')
-    plt.ylabel('Portfolio Value')
-    plt.title('Investment Growth Calculator')
-    fig.canvas.draw()
+    try:
+        plt.bar(ageSpread,portfolioSpread)
+        plt.xlabel('Age')
+        plt.ylabel('Portfolio Value')
+        plt.title('Investment Growth Calculator')
+        fig.canvas.draw()
+    except:
+        print("")
 
 def CreateInitialFigure():
     fig = plt.figure(1)
@@ -65,11 +67,10 @@ def CreateInitialFigure():
 
 def CreateForm(root):
     ents = makeform(root, fields)
-    root.bind('<Return>', (lambda event, e=ents: fetch(e)))
-    b1 = Button(root, text='Calculate',command=(lambda e=ents: CalculatePortfolio(e)))
-    b1.pack(side=BOTTOM, padx=5, pady=5)
     b2 = Button(root, text='Quit', command=root.quit)
     b2.pack(side=BOTTOM, padx=5, pady=5)
+    b1 = Button(root, text='Calculate',command=(lambda e=ents: CalculatePortfolio(e)))
+    b1.pack(side=BOTTOM, padx=5, pady=5)
 
 if __name__ == '__main__':
     root = Tk()
