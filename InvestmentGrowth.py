@@ -9,6 +9,7 @@ import numpy as np
 fields = ('Annual Contribution', 'Current Age', 'Retirement Age','Current Portfolio Value','# of Simulations')
 ageSpread = [15]
 portfolioSpread = [0]
+results_array = []
 strategies = {'Fixed Allocations', 'Shifting Bond Allocations'}
 
 with open('stockHistory.txt') as stockFile:
@@ -17,19 +18,14 @@ with open('stockHistory.txt') as stockFile:
 with open('bondHistory.txt') as bondFile:
     bondData = bondFile.readlines()
 
-def makeform(root, fields):
-   entries = {}
-   for field in fields:
-      row = Frame(root)
-      lab = Label(row, width=22, text=field+": ", anchor='w')
-      ent = Entry(row)
-      ent.insert(0,"0")
-      row.pack(side=TOP, fill=X, padx=5, pady=5)
-      lab.pack(side=LEFT)
-      ent.pack(side=RIGHT, expand=YES, fill=X)
-      entries[field] = ent
-   return entries
+class Results:
+    def __init__(self,simulationNumber,finalBalance,growthHistory):
+        self.simulationNumber = simulationNumber
+        self.finalBalance = finalBalance
+        self.growthHistory = growthHistory
 
+def GetFinalBalance(obj):
+    return obj.finalBalance
 
 def CalculatePortfolio(entries):
     contribution = (float(entries['Annual Contribution'].get()))
@@ -55,8 +51,19 @@ def CalculatePortfolio(entries):
             iterationAge = iterationAge + 1
             dataMatrix[simCount][iterationAge-lengthOffset-1] = iterationBalance
 
-        plt.plot(dataMatrix[simCount][:])
+        resultObject = Results(simCount,dataMatrix[simCount][iterationAge-lengthOffset-1],dataMatrix[simCount][:])
+
+        results_array.append(resultObject)
         simCount = simCount + 1
+
+    sortedResults = sorted(results_array, key=GetFinalBalance)
+    medianNumber = round(numberOfSimulations/2)
+    plt.plot(sortedResults[medianNumber].growthHistory)
+
+def SortResults(arrayToSort):
+
+    return sortedArray
+
 
 def CreateMatrix(length,height):
     w,h = length,height
@@ -81,7 +88,7 @@ def FindRandomBondRate():
 def PlotChart(ageSpread,portfolioSpread):
     try:
         plt.plot(ageSpread,portfolioSpread)
-        plt.xlabel('Age')
+        plt.xlabel('Years of Growth')
         plt.ylabel('Portfolio Value')
         plt.title('Investment Growth Calculator')
         fig.canvas.draw()
@@ -99,12 +106,25 @@ def CreateInitialFigure():
     fig = plt.figure(1)
     plt.ion()
     plt.plot(ageSpread,portfolioSpread)
-    plt.xlabel('Age')
+    plt.xlabel('Years of Growth')
     plt.ylabel('Portfolio Value')
     plt.title('Investment Growth Calculator')
     canvas = FigureCanvasTkAgg(fig, master=root)
     plot_widget = canvas.get_tk_widget()
     plot_widget.pack()
+
+def makeform(root, fields):
+   entries = {}
+   for field in fields:
+      row = Frame(root)
+      lab = Label(row, width=22, text=field+": ", anchor='w')
+      ent = Entry(row)
+      ent.insert(0,"0")
+      row.pack(side=TOP, fill=X, padx=5, pady=5)
+      lab.pack(side=LEFT)
+      ent.pack(side=RIGHT, expand=YES, fill=X)
+      entries[field] = ent
+   return entries
 
 def CreateAllocationPopup():
     tkvar = StringVar(root)
