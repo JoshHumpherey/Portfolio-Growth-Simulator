@@ -1,4 +1,4 @@
-from tkinter import *
+import tkinter as tk
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -52,18 +52,37 @@ def CalculatePortfolio(entries):
             dataMatrix[simCount][iterationAge-lengthOffset-1] = iterationBalance
 
         resultObject = Results(simCount,dataMatrix[simCount][iterationAge-lengthOffset-1],dataMatrix[simCount][:])
-
         results_array.append(resultObject)
         simCount = simCount + 1
+    ComputeTrendlines(numberOfSimulations)
 
-    sortedResults = sorted(results_array, key=GetFinalBalance)
-    medianNumber = round(numberOfSimulations/2)
-    plt.plot(sortedResults[medianNumber].growthHistory)
+
+
+def ComputeTrendlines(numberOfSimulations):
+    plt.clf()
+    sortedResults = SortResults(results_array)
+    middleQuartile = round(numberOfSimulations/2)
+    lowerQuartile = round(numberOfSimulations/4)
+    upperQuartile = round((numberOfSimulations/4)*3)
+    plt.xlabel('Years of Growth')
+    plt.ylabel('Portfolio Value')
+    plt.title('Investment Growth Calculator')
+    plt.plot(sortedResults[lowerQuartile].growthHistory)
+    plt.plot(sortedResults[middleQuartile].growthHistory)
+    plt.plot(sortedResults[upperQuartile].growthHistory)
+    lowerResult = round(sortedResults[lowerQuartile].finalBalance)
+    middleResult = round(sortedResults[middleQuartile].finalBalance)
+    upperResult = round(sortedResults[upperQuartile].finalBalance)
+    lowerString = str(format(lowerResult,",d"))
+    middleString = str(format(middleResult,",d"))
+    upperString = str(format(upperResult,",d"))
+    resultsString = "  Bottom Quartile: " + lowerString + " * Middle Quartile: " + middleString + " * Upper Quartile: " + upperString + "  "
+    performanceVar.set(resultsString)
+
 
 def SortResults(arrayToSort):
-
+    sortedArray = sorted(arrayToSort, key=GetFinalBalance)
     return sortedArray
-
 
 def CreateMatrix(length,height):
     w,h = length,height
@@ -98,6 +117,7 @@ def PlotChart(ageSpread,portfolioSpread):
 
 def CreateForm(root):
     CreateInitialFigure()
+    CreatePerformanceText(root)
     ents = makeform(root, fields)
     CreateButtons(ents)
     CreateAllocationPopup()
@@ -116,32 +136,38 @@ def CreateInitialFigure():
 def makeform(root, fields):
    entries = {}
    for field in fields:
-      row = Frame(root)
-      lab = Label(row, width=22, text=field+": ", anchor='w')
-      ent = Entry(row)
+      row = tk.Frame(root)
+      lab = tk.Label(row, width=22, text=field+": ", anchor='w')
+      ent = tk.Entry(row)
       ent.insert(0,"0")
-      row.pack(side=TOP, fill=X, padx=5, pady=5)
-      lab.pack(side=LEFT)
-      ent.pack(side=RIGHT, expand=YES, fill=X)
+      row.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+      lab.pack(side=tk.LEFT)
+      ent.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.X)
       entries[field] = ent
    return entries
 
 def CreateAllocationPopup():
-    tkvar = StringVar(root)
+    tkvar = tk.StringVar(root)
     tkvar.set('Shifting Bond Allocation')
-    popupMenu = OptionMenu(root, tkvar, *strategies)
-    Label(root, text='Portfolio Strategy')
-    popupMenu.pack(side=BOTTOM, padx=5,pady=5)
+    popupMenu = tk.OptionMenu(root, tkvar, *strategies)
+    tk.Label(root, text='Portfolio Strategy')
+    popupMenu.pack(side=tk.BOTTOM, padx=5,pady=5)
 
 def CreateButtons(ents):
-    b2 = Button(root, text='Quit', command=root.quit)
-    b2.pack(side=BOTTOM, padx=5, pady=5)
-    b1 = Button(root, text='Calculate',command=(lambda e=ents: CalculatePortfolio(e)))
-    b1.pack(side=BOTTOM, padx=5, pady=5)
+    b2 = tk.Button(root, text='Quit', command=root.quit)
+    b2.pack(side=tk.BOTTOM, padx=5, pady=5)
+    b1 = tk.Button(root, text='Calculate',command=(lambda e=ents: CalculatePortfolio(e)))
+    b1.pack(side=tk.BOTTOM, padx=5, pady=5)
 
+def CreatePerformanceText(root):
+    global performanceVar
+    performanceVar = tk.StringVar()
+    performanceVar.set("")
+    performanceLabel = tk.Label(textvariable=performanceVar, font=(None,15))
+    performanceLabel.pack(side=tk.TOP)
 
 if __name__ == '__main__':
-    root = Tk()
+    root = tk.Tk()
     root.wm_title("Portfolio Growth Estimator")
     CreateForm(root)
     root.mainloop()
