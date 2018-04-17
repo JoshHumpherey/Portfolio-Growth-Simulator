@@ -1,14 +1,16 @@
 import tkinter as tk
 import matplotlib
-matplotlib.use('TkAgg')
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import random
-import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+matplotlib.use('TkAgg')
 
-fields = ('Annual Contribution', 'Current Age', 'Retirement Age','Current Portfolio Value','# of Simulations')
+
+
+fields = ('Annual Contribution', 'Current Age', 'Retirement Age','Current Portfolio Value','Percent in Stocks (vs. Bonds)','# of Simulations')
 ageSpread = [15]
 portfolioSpread = [0]
+stockAllocation = []
 results_array = []
 strategies = {'Fixed Allocations', 'Shifting Bond Allocations'}
 
@@ -24,6 +26,12 @@ class Results:
         self.finalBalance = finalBalance
         self.growthHistory = growthHistory
 
+class yearlyData:
+    def __init__(self,stockReturn,bondReturn,stockPercentage):
+        self.stockReturn = stockReturn
+        self.bondReturn = bondReturn
+        self.stockPercentage = stockPercentage
+
 def GetFinalBalance(obj):
     return obj.finalBalance
 
@@ -33,8 +41,9 @@ def CalculatePortfolio(entries):
     retirementAge = (int(entries['Retirement Age'].get()))
     startingValue = (float(entries['Current Portfolio Value'].get()))
     numberOfSimulations = (int(entries['# of Simulations'].get()))
+    stockPercentage = float(entries['Percent in Stocks (vs. Bonds)'].get())
+    stockAllocation.append(stockPercentage)
     portfolioSpread = [startingValue]
-    ageSpread = [currentAge]
     balance = float(portfolioSpread[0])
     matrixLength = retirementAge - currentAge
     matrixHeight = numberOfSimulations
@@ -45,9 +54,14 @@ def CalculatePortfolio(entries):
         iterationBalance = balance
         lengthOffset = currentAge
         while (iterationAge < retirementAge):
-            randomReturnRate = FindRandomStockRate()
+            currentYearInfo = GetYearlyInformation()
             iterationBalance = iterationBalance + contribution
-            iterationBalance = iterationBalance + iterationBalance*randomReturnRate
+            stockBalance = iterationBalance*currentYearInfo.stockPercentage
+            bondBalance = iterationBalance*(1-currentYearInfo.stockPercentage)
+            stockBalance = stockBalance + stockBalance*currentYearInfo.stockReturn
+            bondBalance = bondBalance + bondBalance*currentYearInfo.bondReturn
+            iterationBalance = stockBalance + bondBalance
+
             iterationAge = iterationAge + 1
             dataMatrix[simCount][iterationAge-lengthOffset-1] = iterationBalance
 
@@ -90,34 +104,28 @@ def CreateMatrix(length,height):
     #print(np.matrix(Matrix))
     return Matrix
 
-def PrintBalance(portfolioSpread):
-        index = len(portfolioSpread)-1
-        balanceText = "Balance at Retirement: " + str(int(round(portfolioSpread[index])))
-        finalBalance = Label(root, text=balanceText)
-        finalBalance.pack(side=BOTTOM)
-
-def FindRandomStockRate():
+def GetYearlyInformation():
     randomYear = random.randint(1,88)
-    return float(stockData[randomYear])
+    stockRate = float(stockData[randomYear])
+    bondRate = float(bondData[randomYear])
+    stockPct =  float(stockAllocation[0])
+    yearObject = yearlyData(stockRate,bondRate,stockPct)
+    return yearObject
 
 def FindRandomBondRate():
     randomYear = random.randint(1,30)
     return float(bondData[randomYear])
 
 def PlotChart(ageSpread,portfolioSpread):
-    try:
         plt.plot(ageSpread,portfolioSpread)
         plt.xlabel('Years of Growth')
         plt.ylabel('Portfolio Value')
         plt.title('Investment Growth Calculator')
-        fig.canvas.draw()
-    except:
-        print("")
 
 
 def CreateForm(root):
     CreateInitialFigure()
-    CreatePerformanceText(root)
+    CreatePerformanceText()
     ents = makeform(root, fields)
     CreateButtons(ents)
     CreateAllocationPopup()
@@ -159,7 +167,7 @@ def CreateButtons(ents):
     b1 = tk.Button(root, text='Calculate',command=(lambda e=ents: CalculatePortfolio(e)))
     b1.pack(side=tk.BOTTOM, padx=5, pady=5)
 
-def CreatePerformanceText(root):
+def CreatePerformanceText():
     global performanceVar
     performanceVar = tk.StringVar()
     performanceVar.set("")
