@@ -5,8 +5,6 @@ import random
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 matplotlib.use('TkAgg')
 
-
-
 fields = ('Annual Contribution', 'Current Age', 'Retirement Age','Current Portfolio Value','Percent in Stocks (vs. Bonds)','# of Simulations')
 ageSpread = [15]
 portfolioSpread = [0]
@@ -32,45 +30,52 @@ class yearlyData:
         self.bondReturn = bondReturn
         self.stockPercentage = stockPercentage
 
+class Investor:
+    def __init__(self,entries):
+        self.contribution = (float(entries['Annual Contribution'].get()))
+        self.currentAge = currentAge = (int(entries['Current Age'].get()))
+        self.retirementAge = (int(entries['Retirement Age'].get()))
+        self.startingValue = (float(entries['Current Portfolio Value'].get()))
+        self.numberOfSimulations = (int(entries['# of Simulations'].get()))
+        self.stockPercentage = float(entries['Percent in Stocks (vs. Bonds)'].get())
+
+
 def GetFinalBalance(obj):
     return obj.finalBalance
 
 def CalculatePortfolio(entries):
-    contribution = (float(entries['Annual Contribution'].get()))
-    currentAge = (int(entries['Current Age'].get()))
-    retirementAge = (int(entries['Retirement Age'].get()))
-    startingValue = (float(entries['Current Portfolio Value'].get()))
-    numberOfSimulations = (int(entries['# of Simulations'].get()))
-    stockPercentage = float(entries['Percent in Stocks (vs. Bonds)'].get())
-    stockAllocation.append(stockPercentage)
-    portfolioSpread = [startingValue]
+    investorValues = Investor(entries)
+    stockAllocation.append(investorValues.stockPercentage)
+    portfolioSpread = [investorValues.startingValue]
     balance = float(portfolioSpread[0])
-    matrixLength = retirementAge - currentAge
-    matrixHeight = numberOfSimulations
+    matrixLength = investorValues.retirementAge - investorValues.currentAge
+    matrixHeight = investorValues.numberOfSimulations
     dataMatrix = CreateMatrix(matrixLength,matrixHeight)
     simCount = 0
-    while (simCount < numberOfSimulations):
-        iterationAge = currentAge
+    while (simCount < investorValues.numberOfSimulations):
+        iterationAge = investorValues.currentAge
         iterationBalance = balance
-        lengthOffset = currentAge
-        while (iterationAge < retirementAge):
-            currentYearInfo = GetYearlyInformation()
-            iterationBalance = iterationBalance + contribution
-            stockBalance = iterationBalance*currentYearInfo.stockPercentage
-            bondBalance = iterationBalance*(1-currentYearInfo.stockPercentage)
-            stockBalance = stockBalance + stockBalance*currentYearInfo.stockReturn
-            bondBalance = bondBalance + bondBalance*currentYearInfo.bondReturn
-            iterationBalance = stockBalance + bondBalance
-
+        lengthOffset = investorValues.currentAge
+        while (iterationAge < investorValues.retirementAge):
+            iterationBalance = UpdateBalance(iterationBalance,investorValues.contribution)
             iterationAge = iterationAge + 1
             dataMatrix[simCount][iterationAge-lengthOffset-1] = iterationBalance
 
         resultObject = Results(simCount,dataMatrix[simCount][iterationAge-lengthOffset-1],dataMatrix[simCount][:])
         results_array.append(resultObject)
         simCount = simCount + 1
-    ComputeTrendlines(numberOfSimulations)
+    ComputeTrendlines(investorValues.numberOfSimulations)
 
 
+def UpdateBalance(iterationBalance, contribution):
+    currentYearInfo = GetYearlyInformation()
+    iterationBalance = iterationBalance + contribution
+    stockBalance = iterationBalance * currentYearInfo.stockPercentage
+    bondBalance = iterationBalance * (1 - currentYearInfo.stockPercentage)
+    stockBalance = stockBalance + stockBalance * currentYearInfo.stockReturn
+    bondBalance = bondBalance + bondBalance * currentYearInfo.bondReturn
+    iterationBalance = stockBalance + bondBalance
+    return iterationBalance
 
 def ComputeTrendlines(numberOfSimulations):
     plt.clf()
