@@ -39,6 +39,11 @@ class Investor:
         self.numberOfSimulations = (int(entries['# of Simulations'].get()))
         self.stockPercentage = float(entries['Percent in Stocks (vs. Bonds)'].get())
 
+class QuartileResults:
+    def __init__(self, lower, middle, upper):
+        self.lower = lower
+        self.middle = middle
+        self.upper = upper
 
 def GetFinalBalance(obj):
     return obj.finalBalance
@@ -57,18 +62,20 @@ def CalculatePortfolio(entries):
         iterationBalance = balance
         lengthOffset = investorValues.currentAge
         while (iterationAge < investorValues.retirementAge):
-            iterationBalance = UpdateBalance(iterationBalance,investorValues.contribution)
+            currentYearInfo = GetYearlyInformation()
+            iterationBalance = UpdateBalance(iterationBalance,investorValues.contribution,currentYearInfo)
             iterationAge = iterationAge + 1
             dataMatrix[simCount][iterationAge-lengthOffset-1] = iterationBalance
 
         resultObject = Results(simCount,dataMatrix[simCount][iterationAge-lengthOffset-1],dataMatrix[simCount][:])
         results_array.append(resultObject)
         simCount = simCount + 1
-    ComputeTrendlines(investorValues.numberOfSimulations)
+
+    quartileData = GetQuartileData(investorValues.numberOfSimulations)
+    PlotTrendlines(quartileData.lower,quartileData.middle,quartileData.upper)
 
 
-def UpdateBalance(iterationBalance, contribution):
-    currentYearInfo = GetYearlyInformation()
+def UpdateBalance(iterationBalance, contribution,currentYearInfo):
     iterationBalance = iterationBalance + contribution
     stockBalance = iterationBalance * currentYearInfo.stockPercentage
     bondBalance = iterationBalance * (1 - currentYearInfo.stockPercentage)
@@ -77,12 +84,18 @@ def UpdateBalance(iterationBalance, contribution):
     iterationBalance = stockBalance + bondBalance
     return iterationBalance
 
-def ComputeTrendlines(numberOfSimulations):
+def GetQuartileData(numberOfSimulations):
+    stdIncrement = round(numberOfSimulations/100)
+    lowerQuartile = round(stdIncrement*25)
+    middleQuartile = round(stdIncrement*50)
+    upperQuartile = round((stdIncrement*75))
+    dataObject = QuartileResults(lowerQuartile,middleQuartile,upperQuartile)
+    return dataObject
+
+
+def PlotTrendlines(lowerQuartile,middleQuartile,upperQuartile):
     plt.clf()
     sortedResults = SortResults(results_array)
-    middleQuartile = round(numberOfSimulations/2)
-    lowerQuartile = round(numberOfSimulations/4)
-    upperQuartile = round((numberOfSimulations/4)*3)
     plt.xlabel('Years of Growth')
     plt.ylabel('Portfolio Value')
     plt.title('Investment Growth Calculator')
@@ -97,7 +110,6 @@ def ComputeTrendlines(numberOfSimulations):
     upperString = str(format(upperResult,",d"))
     resultsString = "  Bottom Quartile: " + lowerString + " * Middle Quartile: " + middleString + " * Upper Quartile: " + upperString + "  "
     performanceVar.set(resultsString)
-
 
 def SortResults(arrayToSort):
     sortedArray = sorted(arrayToSort, key=GetFinalBalance)
