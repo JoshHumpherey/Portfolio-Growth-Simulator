@@ -26,7 +26,13 @@ class InvestmentGrowthTests(unittest.TestCase):
         testBalance = InvestmentGrowth.UpdateBalance(iterationBalance,contribution,yearlyData)
         self.assertEqual(testBalance,expectedResult)
 
-
+    def test_CreateMatrix(self):
+        testLength = 5
+        testHeight = 2
+        testMatrix = InvestmentGrowth.CreateMatrix(5,2)
+        self.assertEqual(0,testMatrix[1][4])
+        with self.assertRaises(Exception):
+            testMatrix[2][5]
 
 
 

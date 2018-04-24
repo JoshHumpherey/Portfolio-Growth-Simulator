@@ -92,7 +92,6 @@ def GetQuartileData(numberOfSimulations):
     dataObject = QuartileResults(lowerQuartile,middleQuartile,upperQuartile)
     return dataObject
 
-
 def PlotTrendlines(lowerQuartile,middleQuartile,upperQuartile):
     plt.clf()
     sortedResults = SortResults(results_array)
@@ -116,8 +115,8 @@ def SortResults(arrayToSort):
     return sortedArray
 
 def CreateMatrix(length,height):
-    w,h = length,height
-    Matrix = [[0 for x in range(w)] for y in range(h)]
+    l,h = length,height
+    Matrix = [[0 for x in range(l)] for y in range(h)]
     #print(np.matrix(Matrix))
     return Matrix
 
