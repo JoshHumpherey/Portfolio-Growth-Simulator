@@ -11,12 +11,19 @@ portfolioSpread = [0]
 stockAllocation = []
 results_array = []
 strategies = {'Fixed Allocations', 'Shifting Bond Allocations'}
+OFFSET = 1928
+stock_map = dict()
+bond_map = dict()
 
 with open('stockHistory.txt') as stockFile:
     stockData = stockFile.readlines()
+    for year in range(OFFSET, 2017):
+        stock_map[year] = stockData[year-OFFSET]
 
 with open('bondHistory.txt') as bondFile:
     bondData = bondFile.readlines()
+    for year in range(OFFSET, 2017):
+        bond_map[year] = bondData[year-OFFSET]
 
 class Results:
     def __init__(self,simulationNumber,finalBalance,growthHistory):
@@ -117,13 +124,12 @@ def SortResults(arrayToSort):
 def CreateMatrix(length,height):
     l,h = length,height
     Matrix = [[0 for x in range(l)] for y in range(h)]
-    #print(np.matrix(Matrix))
     return Matrix
 
 def GetYearlyInformation():
-    randomYear = random.randint(1,88)
-    stockRate = float(stockData[randomYear])
-    bondRate = float(bondData[randomYear])
+    randomYear = random.randint(1928, 2016)
+    stockRate = float(stock_map[randomYear])
+    bondRate = float(bond_map[randomYear])
     stockPct =  float(stockAllocation[0])
     yearObject = yearlyData(stockRate,bondRate,stockPct)
     return yearObject
