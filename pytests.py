@@ -20,7 +20,7 @@ class InvestmentGrowthTests(unittest.TestCase):
         self.assertEqual(expected_middle, test_quartile_object.middle)
         self.assertEqual(expected_upper, test_quartile_object.upper)
 
-    @patch('investment_growth.yearly_data')
+    @patch('investment_growth.YearlyData')
     def test_update_balance(self, mock_yearly_data):
         """ Test to make sure the investor balance updates correctly. """
         yearly_data = mock_yearly_data
