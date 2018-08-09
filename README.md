@@ -5,4 +5,4 @@ S+P 500 Index. While this is not a perfect way to determine the performance of y
 a much better idea of market volatility than assuming a standard rate of return. Each 'year' that is calculated
 is done so with a randomly chosen year from the historical data text file. 
 
-![Use Case Example](/images/portfolio_example.jpg?raw=true "Portfolio Example: ")
+![Use Case Example](https://github.com/JoshHumpherey/Financial_Calculators/blob/master/images/portfolio_example.JPG)
