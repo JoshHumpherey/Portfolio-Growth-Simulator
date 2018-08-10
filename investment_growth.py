@@ -14,7 +14,7 @@ FIELDS = ('Annual Contribution', 'Current Age', 'Retirement Age', 'Current Portf
           'Percent in Stocks (vs. Bonds)', 'Inflation', '# of Simulations')
 AGE_SPREAD = [15]
 STOCK_ALLOCATION = []
-RESULTS_ARRAY = []
+
 STRATEGIES = {'Fixed Allocations', 'Shifting Bond Allocations'}
 OFFSET = 1928
 STOCK_MAP = dict()
@@ -66,7 +66,7 @@ def get_final_balance(obj):
     """ Takes in the data from a year and returns it's final balance. """
     return obj.final_balance
 
-def calculate_portfolio(entries):
+def calculate_portfolio(entries, results_array):
     """
     This is currently the main method for the program.
     It uses nested while loops to simulate an investors lifetime (inner loop)
@@ -91,11 +91,10 @@ def calculate_portfolio(entries):
             data_matrix[sim_count][i-length_offset-1] = iteration_balance
         result_object = Results(sim_count, data_matrix[sim_count][iteration_age-length_offset-1],
                                 data_matrix[sim_count][:])
-        RESULTS_ARRAY.append(result_object)
+        results_array.append(result_object)
 
     quartile_data = get_quartile_data(investor_values.number_of_simulations)
-    plot_trendlines(quartile_data.lower, quartile_data.middle, quartile_data.upper)
-
+    plot_trendlines(quartile_data.lower, quartile_data.middle, quartile_data.upper, results_array)
 
 def update_balance(iteration_balance, contribution, current_year_info):
     """ Takes in a single year's data during a single simulation and updates the balance. """
@@ -116,10 +115,10 @@ def get_quartile_data(number_of_simulations):
     data_object = QuartileResults(lower_quartile, middle_quartile, upper_quartile)
     return data_object
 
-def plot_trendlines(lower_quartile, middle_quartile, upper_quartile):
+def plot_trendlines(lower_quartile, middle_quartile, upper_quartile, results_array):
     """ Take in the line numbers to plot and output a plot of those lines. """
     plt.clf()
-    sorted_results = sorted(RESULTS_ARRAY, key=get_final_balance)
+    sorted_results = sorted(results_array, key=get_final_balance)
     plt.xlabel('Years of Growth')
     plt.ylabel('Portfolio Value')
     plt.title('Investment Growth Calculator')
@@ -212,7 +211,7 @@ def create_buttons(ents):
     """ This creates the buttons a user can interact with. """
     button_2 = tk.Button(ROOT, text='Quit', command=ROOT.quit)
     button_2.pack(side=tk.BOTTOM, padx=5, pady=5)
-    button_1 = tk.Button(ROOT, text='Calculate', command=(lambda e=ents: calculate_portfolio(e)))
+    button_1 = tk.Button(ROOT, text='Calculate', command=(lambda e=ents: calculate_portfolio(e, [])))
     button_1.pack(side=tk.BOTTOM, padx=5, pady=5)
 
 def create_performance_text():
