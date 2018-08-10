@@ -87,6 +87,8 @@ def calculate_portfolio(entries):
             current_year_info = get_yearly_information(investor_values)
             iteration_balance = update_balance(iteration_balance,
                                                investor_values.withdrawl, current_year_info)
+            if iteration_balance < 0:
+                iteration_balance = 0
             data_matrix[sim_count][i-length_offset-1] = iteration_balance
         result_object = Results(sim_count, data_matrix[sim_count][iteration_age-length_offset-1],
                                 data_matrix[sim_count][:])
@@ -94,7 +96,6 @@ def calculate_portfolio(entries):
 
     quartile_data = get_quartile_data(investor_values.number_of_simulations)
     plot_trendlines(quartile_data.lower, quartile_data.middle, quartile_data.upper)
-
 
 def update_balance(iteration_balance, withdrawl, current_year_info):
     """ Takes in a single year's data during a single simulation and updates the balance. """
@@ -174,6 +175,7 @@ def create_form(ROOT):
     create_performance_text()
     ents = make_form(ROOT, FIELDS)
     create_buttons(ents)
+    ROOT.wm_iconbitmap('images/money.ico')
 
 def create_initial_figure():
     """ This creates the graph on which the results are ploted. """

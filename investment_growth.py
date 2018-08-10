@@ -172,6 +172,7 @@ def create_form(ROOT):
     create_performance_text()
     ents = make_form(ROOT, FIELDS)
     create_buttons(ents)
+    ROOT.wm_iconbitmap('images/money.ico')
     create_allocation_popup()
 
 def create_initial_figure():
