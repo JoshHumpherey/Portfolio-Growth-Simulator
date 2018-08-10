@@ -146,10 +146,8 @@ def smooth_trendlines(n_quartile, smooth_amount, sorted_results):
         other_line = sorted_results[line].growth_history
         for i in range(len(my_line)):
             my_line[i] += other_line[i]
-    print(my_line)
     for i in range(len(my_line)):
         my_line[i] /= smooth_amount
-    print(my_line)
     return my_line
 
 
