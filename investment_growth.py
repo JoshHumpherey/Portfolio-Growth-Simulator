@@ -11,7 +11,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 matplotlib.use('TkAgg')
 
 FIELDS = ('Annual Contribution', 'Current Age', 'Retirement Age', 'Current Portfolio Value',
-          'Percent in Stocks (vs. Bonds)', '# of Simulations')
+          'Percent in Stocks (vs. Bonds)', 'Inflation', '# of Simulations')
 AGE_SPREAD = [15]
 STOCK_ALLOCATION = []
 RESULTS_ARRAY = []
@@ -53,6 +53,7 @@ class Investor:
         self.starting_value = (float(entries['Current Portfolio Value'].get()))
         self.number_of_simulations = (int(entries['# of Simulations'].get()))
         self.stock_percentage = float(entries['Percent in Stocks (vs. Bonds)'].get())
+        self.inflation = float(entries['Inflation'].get())
 
 class QuartileResults:
     """ The QuartileResults class holds the simulation number for each quartile. """
@@ -84,11 +85,11 @@ def calculate_portfolio(entries):
         iteration_balance = balance
         length_offset = investor_values.current_age
         for i in range(iteration_age, investor_values.retirement_age+1):
-            current_year_info = get_yearly_information()
+            current_year_info = get_yearly_information(investor_values)
             iteration_balance = update_balance(iteration_balance,
                                                investor_values.contribution, current_year_info)
             data_matrix[sim_count][i-length_offset-1] = iteration_balance
-        result_object = Results(sim_count, data_matrix[sim_count][i-length_offset-1],
+        result_object = Results(sim_count, data_matrix[sim_count][iteration_age-length_offset-1],
                                 data_matrix[sim_count][:])
         RESULTS_ARRAY.append(result_object)
 
@@ -150,20 +151,19 @@ def smooth_trendlines(n_quartile, smooth_amount, sorted_results):
         my_line[i] /= smooth_amount
     return my_line
 
-
-
 def create_matrix(length, height):
     """ Creates a matrix to store data in using a certain length and height. """
     matrix = [[0 for x in range(length)] for y in range(height)]
     return matrix
 
-def get_yearly_information():
+def get_yearly_information(investor_information):
     """ This function grabs stock/bond data from a random year. """
     random_year = random.randint(1928, 2016)
+    inflation = investor_information.inflation
     stock_rate = float(STOCK_MAP[random_year])
     bond_rate = float(BOND_MAP[random_year])
     stock_percentage = float(STOCK_ALLOCATION[0])
-    year_object = YearlyData(stock_rate, bond_rate, stock_percentage)
+    year_object = YearlyData(stock_rate, bond_rate-int(inflation), stock_percentage-int(inflation))
     return year_object
 
 def create_form(ROOT):
