@@ -20,12 +20,12 @@ OFFSET = 1928
 STOCK_MAP = dict()
 BOND_MAP = dict()
 
-with open('stockHistory.txt') as stock_file:
+with open('stock_history.txt') as stock_file:
     STOCK_DATA = stock_file.readlines()
     for year in range(OFFSET, 2017):
         STOCK_MAP[year] = STOCK_DATA[year-OFFSET]
 
-with open('bondHistory.txt') as bond_file:
+with open('bond_history.txt') as bond_file:
     BOND_DATA = bond_file.readlines()
     for year in range(OFFSET, 2017):
         BOND_MAP[year] = BOND_DATA[year-OFFSET]
@@ -79,21 +79,18 @@ def calculate_portfolio(entries):
     matrix_length = investor_values.retirement_age - investor_values.current_age
     matrix_height = investor_values.number_of_simulations
     data_matrix = create_matrix(matrix_length, matrix_height)
-    sim_count = 0
-    while sim_count < investor_values.number_of_simulations:
+    for sim_count in range(investor_values.number_of_simulations):
         iteration_age = investor_values.current_age
         iteration_balance = balance
         length_offset = investor_values.current_age
-        while iteration_age < investor_values.retirement_age:
+        for i in range(iteration_age, investor_values.retirement_age+1):
             current_year_info = get_yearly_information()
             iteration_balance = update_balance(iteration_balance,
                                                investor_values.contribution, current_year_info)
-            iteration_age += 1
-            data_matrix[sim_count][iteration_age-length_offset-1] = iteration_balance
-        result_object = Results(sim_count, data_matrix[sim_count][iteration_age-length_offset-1],
+            data_matrix[sim_count][i-length_offset-1] = iteration_balance
+        result_object = Results(sim_count, data_matrix[sim_count][i-length_offset-1],
                                 data_matrix[sim_count][:])
         RESULTS_ARRAY.append(result_object)
-        sim_count += 1
 
     quartile_data = get_quartile_data(investor_values.number_of_simulations)
     plot_trendlines(quartile_data.lower, quartile_data.middle, quartile_data.upper)
@@ -125,18 +122,37 @@ def plot_trendlines(lower_quartile, middle_quartile, upper_quartile):
     plt.xlabel('Years of Growth')
     plt.ylabel('Portfolio Value')
     plt.title('Investment Growth Calculator')
-    plt.plot(sorted_results[lower_quartile].growth_history)
-    plt.plot(sorted_results[middle_quartile].growth_history)
-    plt.plot(sorted_results[upper_quartile].growth_history)
-    lower_result = round(sorted_results[lower_quartile].final_balance)
-    middle_result = round(sorted_results[middle_quartile].final_balance)
-    upper_result = round(sorted_results[upper_quartile].final_balance)
+    smooth_lower = smooth_trendlines(lower_quartile, 100, sorted_results)
+    smooth_middle = smooth_trendlines(middle_quartile, 100, sorted_results)
+    smooth_upper = smooth_trendlines(upper_quartile, 100, sorted_results)
+    plt.plot(smooth_lower)
+    plt.plot(smooth_middle)
+    plt.plot(smooth_upper)
+    lower_result = round(smooth_lower[-1])
+    middle_result = round(smooth_middle[-1])
+    upper_result = round(smooth_upper[-1])
     lower_string = str(format(lower_result, ",d"))
     middle_string = str(format(middle_result, ",d"))
     upper_string = str(format(upper_result, ",d"))
     results_string = ("  Bottom Quartile: " + lower_string + " * Middle Quartile: "
                       + middle_string + " * Upper Quartile: " + upper_string + "  ")
     PERFORMANCE_VAR.set(results_string)
+
+def smooth_trendlines(n_quartile, smooth_amount, sorted_results):
+    """ This averages the results of a quartile against it's neighbours. """
+    half = (smooth_amount) // 2
+    my_line = sorted_results[n_quartile].growth_history
+    for line in range(n_quartile-half, n_quartile+half):
+        other_line = sorted_results[line].growth_history
+        for i in range(len(my_line)):
+            my_line[i] += other_line[i]
+    print(my_line)
+    for i in range(len(my_line)):
+        my_line[i] /= smooth_amount
+    print(my_line)
+    return my_line
+
+
 
 def create_matrix(length, height):
     """ Creates a matrix to store data in using a certain length and height. """
