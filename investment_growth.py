@@ -6,6 +6,8 @@ matplotlib: used for plotting our monte-carlo results
 import tkinter as tk
 import random
 import matplotlib
+import time
+from functools import wraps
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 matplotlib.use('TkAgg')
