@@ -11,14 +11,17 @@ class InvestmentGrowthTests(unittest.TestCase):
     """ Unit tests for investment_growth.py """
     def test_get_quartile_data(self):
         """ This tests to make sure that the quartiles are divded correctly. """
+        LOWER = 0
+        MID = 1
+        UPPER = 2
         number_of_simulations = 100
         expected_lower = 25
         expected_middle = 50
         expected_upper = 75
-        test_quartile_object = investment_growth.get_quartile_data(number_of_simulations)
-        self.assertEqual(expected_lower, test_quartile_object.lower)
-        self.assertEqual(expected_middle, test_quartile_object.middle)
-        self.assertEqual(expected_upper, test_quartile_object.upper)
+        quartile_tuple = investment_growth.get_quartile_data(number_of_simulations)
+        self.assertEqual(expected_lower, quartile_tuple[LOWER])
+        self.assertEqual(expected_middle, quartile_tuple[MID])
+        self.assertEqual(expected_upper, quartile_tuple[UPPER])
 
     @patch('investment_growth.YearlyData')
     def test_update_balance(self, mock_yearly_data):

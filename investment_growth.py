@@ -39,13 +39,6 @@ class Results:
         self.final_balance = final_balance
         self.growth_history = growth_history
 
-class YearlyData:
-    """ The YearlyData class holds the values of a single simulated year. """
-    def __init__(self, stock_return, bond_return, stock_percentage):
-        self.stock_return = stock_return
-        self.bond_return = bond_return
-        self.stock_percentage = stock_percentage
-
 class Investor:
     """ The Investor class holds information that the user enters about themselves. """
     def __init__(self, entries):
@@ -56,13 +49,6 @@ class Investor:
         self.number_of_simulations = (int(entries['# of Simulations'].get()))
         self.stock_percentage = float(entries['Percent in Stocks (vs. Bonds)'].get())
         self.inflation = float(entries['Inflation'].get())
-
-class QuartileResults:
-    """ The QuartileResults class holds the simulation number for each quartile. """
-    def __init__(self, lower, middle, upper):
-        self.lower = lower
-        self.middle = middle
-        self.upper = upper
 
 def get_final_balance(obj):
     """ Takes in the data from a year and returns it's final balance. """
@@ -87,24 +73,27 @@ def calculate_portfolio(entries, results_array):
         iteration_balance = balance
         length_offset = investor_values.current_age
         for i in range(iteration_age, investor_values.retirement_age+1):
-            current_year_info = get_yearly_information(investor_values)
+            current_year_tuple = get_yearly_information(investor_values)
             iteration_balance = update_balance(iteration_balance,
-                                               investor_values.contribution, current_year_info)
+                                               investor_values.contribution, current_year_tuple)
             data_matrix[sim_count][i-length_offset-1] = iteration_balance
         result_object = Results(sim_count, data_matrix[sim_count][iteration_age-length_offset-1],
                                 data_matrix[sim_count][:])
         results_array.append(result_object)
 
-    quartile_data = get_quartile_data(investor_values.number_of_simulations)
-    plot_trendlines(quartile_data.lower, quartile_data.middle, quartile_data.upper, results_array)
+    quartile_tuple = get_quartile_data(investor_values.number_of_simulations)
+    plot_trendlines(quartile_tuple, results_array)
 
-def update_balance(iteration_balance, contribution, current_year_info):
+def update_balance(iteration_balance, contribution, current_year_tuple):
     """ Takes in a single year's data during a single simulation and updates the balance. """
+    STOCK_RATE = 0
+    BOND_RATE = 1
+    STOCK_PCT = 2
     iteration_balance = iteration_balance + contribution
-    stock_balance = iteration_balance * current_year_info.stock_percentage
-    bond_balance = iteration_balance * (1-current_year_info.stock_percentage)
-    stock_balance = stock_balance + stock_balance * current_year_info.stock_return
-    bond_balance = bond_balance + bond_balance * current_year_info.bond_return
+    stock_balance = iteration_balance * current_year_tuple[STOCK_PCT]
+    bond_balance = iteration_balance * (1-current_year_tuple[STOCK_PCT])
+    stock_balance += stock_balance * current_year_tuple[STOCK_RATE]
+    bond_balance += bond_balance * current_year_tuple[BOND_RATE]
     iteration_balance = stock_balance + bond_balance
     return iteration_balance
 
@@ -114,19 +103,22 @@ def get_quartile_data(number_of_simulations):
     lower_quartile = round(std_increment*25)
     middle_quartile = round(std_increment*50)
     upper_quartile = round((std_increment*75))
-    data_object = QuartileResults(lower_quartile, middle_quartile, upper_quartile)
-    return data_object
+    quartile_tuple = (lower_quartile, middle_quartile, upper_quartile)
+    return quartile_tuple
 
-def plot_trendlines(lower_quartile, middle_quartile, upper_quartile, results_array):
+def plot_trendlines(quartile_tuple, results_array):
     """ Take in the line numbers to plot and output a plot of those lines. """
     plt.clf()
+    LOWER = 0
+    MID = 1
+    UPPER = 2
     sorted_results = sorted(results_array, key=get_final_balance)
     plt.xlabel('Years of Growth')
     plt.ylabel('Portfolio Value')
     plt.title('Investment Growth Calculator')
-    smooth_lower = smooth_trendlines(lower_quartile, 100, sorted_results)
-    smooth_middle = smooth_trendlines(middle_quartile, 100, sorted_results)
-    smooth_upper = smooth_trendlines(upper_quartile, 100, sorted_results)
+    smooth_lower = smooth_trendlines(quartile_tuple[LOWER], 100, sorted_results)
+    smooth_middle = smooth_trendlines(quartile_tuple[MID], 100, sorted_results)
+    smooth_upper = smooth_trendlines(quartile_tuple[UPPER], 100, sorted_results)
     plt.plot(smooth_lower)
     plt.plot(smooth_middle)
     plt.plot(smooth_upper)
@@ -164,8 +156,8 @@ def get_yearly_information(investor_information):
     stock_rate = float(STOCK_MAP[random_year])
     bond_rate = float(BOND_MAP[random_year])
     stock_percentage = float(STOCK_ALLOCATION[0])
-    year_object = YearlyData(stock_rate, bond_rate-int(inflation), stock_percentage-int(inflation))
-    return year_object
+    year_tuple = (stock_rate-int(inflation), bond_rate-int(inflation), stock_percentage)
+    return year_tuple
 
 def create_form(ROOT):
     """ This creates the main form using tkinter. """
