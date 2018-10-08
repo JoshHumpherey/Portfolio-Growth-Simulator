@@ -92,17 +92,18 @@ def update_balance(iteration_balance, contribution, current_year_tuple):
     iteration_balance = iteration_balance + contribution
     stock_balance = iteration_balance * current_year_tuple[STOCK_PCT]
     bond_balance = iteration_balance * (1-current_year_tuple[STOCK_PCT])
-    stock_balance += stock_balance * current_year_tuple[STOCK_RATE]
-    bond_balance += bond_balance * current_year_tuple[BOND_RATE]
+    stock_balance += (stock_balance * current_year_tuple[STOCK_RATE])
+    bond_balance += (bond_balance * current_year_tuple[BOND_RATE])
+    #print("Portfolio started at " + str(iteration_balance) + " and after a year of " + str(current_year_tuple[STOCK_RATE]) + " change it is now at: " + str(stock_balance + bond_balance))
     iteration_balance = stock_balance + bond_balance
     return iteration_balance
 
 def get_quartile_data(number_of_simulations):
     """ Take in the number of simulations and output the quartile line numbers. """
     std_increment = round(number_of_simulations/100)
-    lower_quartile = round(std_increment*25)
-    middle_quartile = round(std_increment*50)
-    upper_quartile = round((std_increment*75))
+    lower_quartile = round(std_increment*5)
+    middle_quartile = round(std_increment*10)
+    upper_quartile = round((std_increment*15))
     quartile_tuple = (lower_quartile, middle_quartile, upper_quartile)
     return quartile_tuple
 
