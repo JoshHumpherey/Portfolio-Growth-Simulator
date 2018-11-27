@@ -48,6 +48,7 @@ class Investor:
         self.starting_value = (float(entries['Current Portfolio Value'].get()))
         self.stock_percentage = float(entries['Percent in Stocks (vs. Bonds)'].get())
         self.inflation = float(entries['Inflation'].get())
+        self.investment_timeline = int(self.retirement_age-self.current_age)
 
 def get_final_balance(obj):
     """ Takes in the data from a year and returns it's final balance. """
@@ -82,6 +83,7 @@ def calculate_portfolio(entries, results_array):
 
     quartile_tuple = get_quartile_data(10000)
     plot_trendlines(quartile_tuple, results_array)
+    display_capital(investor_values.investment_timeline, investor_values.contribution, investor_values.starting_value)
 
 def update_balance(iteration_balance, contribution, current_year_tuple):
     """ Takes in a single year's data during a single simulation and updates the balance. """
@@ -128,9 +130,15 @@ def plot_trendlines(quartile_tuple, results_array):
     lower_string = str(format(lower_result, ",d"))
     middle_string = str(format(middle_result, ",d"))
     upper_string = str(format(upper_result, ",d"))
-    results_string = ("  Bottom Quartile: " + lower_string + " * Middle Quartile: "
-                      + middle_string + " * Upper Quartile: " + upper_string + "  ")
+    results_string = ("  Bottom Quartile: $" + lower_string + " * Middle Quartile: $"
+                      + middle_string + " * Upper Quartile: $" + upper_string + "  ")
     PERFORMANCE_VAR.set(results_string)
+
+def display_capital(investment_length, added_yearly, initial_capital):
+    total_capital = round(initial_capital + (investment_length*added_yearly))
+    formatted_capital = str(format(total_capital, ",d"))
+    results_string = ("Total Invesment Capital: $" + formatted_capital)
+    CAPITAL_VAR.set(results_string)
 
 def smooth_trendlines(n_quartile, smooth_amount, sorted_results):
     """ This averages the results of a quartile against it's neighbours. """
@@ -202,10 +210,16 @@ def create_buttons(ents):
 def create_performance_text():
     """ This creates the text describing how each of the quartiles ended up. """
     global PERFORMANCE_VAR
+    global CAPITAL_VAR
     PERFORMANCE_VAR = tk.StringVar()
     PERFORMANCE_VAR.set("")
     performance_label = tk.Label(textvariable=PERFORMANCE_VAR, font=(None, 15))
     performance_label.pack(side=tk.TOP)
+
+    CAPITAL_VAR = tk.StringVar()
+    CAPITAL_VAR.set("")
+    capital_label = tk.Label(textvariable=CAPITAL_VAR, font=(None, 15))
+    capital_label.pack(side=tk.TOP)
 
 if __name__ == '__main__':
     ROOT = tk.Tk()
