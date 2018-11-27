@@ -46,8 +46,8 @@ class Investor:
         self.current_age = (int(entries['Current Age'].get()))
         self.retirement_age = (int(entries['Retirement Age'].get()))
         self.starting_value = (float(entries['Current Portfolio Value'].get()))
-        self.stock_percentage = float(entries['Percent in Stocks (vs. Bonds)'].get())
-        self.inflation = float(entries['Inflation'].get())
+        self.stock_percentage = float(entries['Percent in Stocks (vs. Bonds)'].get())/100
+        self.inflation = float(entries['Inflation'].get())/100
         self.investment_timeline = int(self.retirement_age-self.current_age)
 
 def get_final_balance(obj):
