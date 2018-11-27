@@ -13,7 +13,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 matplotlib.use('TkAgg')
 
 FIELDS = ('Annual Contribution', 'Current Age', 'Retirement Age', 'Current Portfolio Value',
-          'Percent in Stocks (vs. Bonds)', 'Inflation', '# of Simulations')
+          'Percent in Stocks (vs. Bonds)', 'Inflation')
 AGE_SPREAD = [15]
 STOCK_ALLOCATION = []
 
@@ -46,7 +46,6 @@ class Investor:
         self.current_age = (int(entries['Current Age'].get()))
         self.retirement_age = (int(entries['Retirement Age'].get()))
         self.starting_value = (float(entries['Current Portfolio Value'].get()))
-        self.number_of_simulations = (int(entries['# of Simulations'].get()))
         self.stock_percentage = float(entries['Percent in Stocks (vs. Bonds)'].get())
         self.inflation = float(entries['Inflation'].get())
 
@@ -66,9 +65,9 @@ def calculate_portfolio(entries, results_array):
     portfolio_spread = [investor_values.starting_value]
     balance = float(portfolio_spread[0])
     matrix_length = investor_values.retirement_age - investor_values.current_age
-    matrix_height = investor_values.number_of_simulations
+    matrix_height = 10000
     data_matrix = create_matrix(matrix_length, matrix_height)
-    for sim_count in range(investor_values.number_of_simulations):
+    for sim_count in range(10000):
         iteration_age = investor_values.current_age
         iteration_balance = balance
         length_offset = investor_values.current_age
@@ -81,7 +80,7 @@ def calculate_portfolio(entries, results_array):
                                 data_matrix[sim_count][:])
         results_array.append(result_object)
 
-    quartile_tuple = get_quartile_data(investor_values.number_of_simulations)
+    quartile_tuple = get_quartile_data(10000)
     plot_trendlines(quartile_tuple, results_array)
 
 def update_balance(iteration_balance, contribution, current_year_tuple):
@@ -167,7 +166,6 @@ def create_form(ROOT):
     ents = make_form(ROOT, FIELDS)
     create_buttons(ents)
     ROOT.wm_iconbitmap('images/money.ico')
-    create_allocation_popup()
 
 def create_initial_figure():
     """ This creates the graph on which the results are ploted. """
@@ -193,14 +191,6 @@ def make_form(ROOT, FIELDS):
         ent.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.X)
         entries[field] = ent
     return entries
-
-def create_allocation_popup():
-    """ This creates the combobox allowing a user to choose an allocation strategy. """
-    tkvar = tk.StringVar(ROOT)
-    tkvar.set('Shifting Bond Allocation')
-    popup_menu = tk.OptionMenu(ROOT, tkvar, *STRATEGIES)
-    tk.Label(ROOT, text='Portfolio Strategy')
-    popup_menu.pack(side=tk.BOTTOM, padx=5, pady=5)
 
 def create_buttons(ents):
     """ This creates the buttons a user can interact with. """
