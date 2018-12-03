@@ -16,20 +16,21 @@ FIELDS = ('Annual Contribution', 'Current Age', 'Retirement Age', 'Current Portf
           'Percent in Stocks (vs. Bonds)', 'Inflation')
 AGE_SPREAD = [15]
 STOCK_ALLOCATION = []
-
+CURRENT_YEAR = 2018
 STRATEGIES = {'Fixed Allocations', 'Shifting Bond Allocations'}
-OFFSET = 1928
+OFFSET = 1872
 STOCK_MAP = dict()
 BOND_MAP = dict()
 
+
 with open('stock_history.txt') as stock_file:
     STOCK_DATA = stock_file.readlines()
-    for year in range(OFFSET, 2017):
+    for year in range(OFFSET, CURRENT_YEAR-1):
         STOCK_MAP[year] = STOCK_DATA[year-OFFSET]
 
 with open('bond_history.txt') as bond_file:
     BOND_DATA = bond_file.readlines()
-    for year in range(OFFSET, 2017):
+    for year in range(OFFSET, CURRENT_YEAR-1):
         BOND_MAP[year] = BOND_DATA[year-OFFSET]
 
 class Results:
@@ -102,9 +103,9 @@ def update_balance(iteration_balance, contribution, current_year_tuple):
 def get_quartile_data(number_of_simulations):
     """ Take in the number of simulations and output the quartile line numbers. """
     std_increment = round(number_of_simulations/100)
-    lower_quartile = round(std_increment*5)
-    middle_quartile = round(std_increment*10)
-    upper_quartile = round((std_increment*15))
+    lower_quartile = round(std_increment*25)
+    middle_quartile = round(std_increment*50)
+    upper_quartile = round((std_increment*75))
     quartile_tuple = (lower_quartile, middle_quartile, upper_quartile)
     return quartile_tuple
 
@@ -159,7 +160,7 @@ def create_matrix(length, height):
 
 def get_yearly_information(investor_information):
     """ This function grabs stock/bond data from a random year. """
-    random_year = random.randint(1928, 2016)
+    random_year = random.randint(1872, CURRENT_YEAR-2)
     inflation = investor_information.inflation
     stock_rate = float(STOCK_MAP[random_year])
     bond_rate = float(BOND_MAP[random_year])
