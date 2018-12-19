@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 matplotlib.use('TkAgg')
 
-FIELDS = ('Annual Contribution', 'Current Age', 'Retirement Age', 'Current Portfolio Value',
+FIELDS = ('Annual Contribution','Annual Increase (In $)','Current Age', 'Retirement Age', 'Current Portfolio Value',
           'Percent in Stocks (vs. Bonds)', 'Inflation')
 AGE_SPREAD = [15]
 STOCK_ALLOCATION = []
@@ -48,6 +48,7 @@ class Investor:
         self.retirement_age = (int(entries['Retirement Age'].get()))
         self.starting_value = (float(entries['Current Portfolio Value'].get()))
         self.stock_percentage = float(entries['Percent in Stocks (vs. Bonds)'].get())/100
+        self.contribution_increase = float(entries['Annual Increase (In $)'].get())
         self.inflation = float(entries['Inflation'].get())/100
         self.investment_timeline = int(self.retirement_age-self.current_age)
 
@@ -69,14 +70,18 @@ def calculate_portfolio(entries, results_array):
     matrix_length = investor_values.retirement_age - investor_values.current_age
     matrix_height = 10000
     data_matrix = create_matrix(matrix_length, matrix_height)
+    base_contribution = investor_values.contribution
     for sim_count in range(10000):
         iteration_age = investor_values.current_age
         iteration_balance = balance
         length_offset = investor_values.current_age
+        investor_values.contribution = base_contribution
         for i in range(iteration_age, investor_values.retirement_age+1):
             current_year_tuple = get_yearly_information(investor_values)
             iteration_balance = update_balance(iteration_balance,
                                                investor_values.contribution, current_year_tuple)
+            investor_values.contribution += investor_values.contribution_increase
+            print("New contribution is: " + str(investor_values.contribution))
             data_matrix[sim_count][i-length_offset-1] = iteration_balance
         result_object = Results(sim_count, data_matrix[sim_count][iteration_age-length_offset-1],
                                 data_matrix[sim_count][:])
