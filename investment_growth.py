@@ -81,7 +81,6 @@ def calculate_portfolio(entries, results_array):
             iteration_balance = update_balance(iteration_balance,
                                                investor_values.contribution, current_year_tuple)
             investor_values.contribution += investor_values.contribution_increase
-            print("New contribution is: " + str(investor_values.contribution))
             data_matrix[sim_count][i-length_offset-1] = iteration_balance
         result_object = Results(sim_count, data_matrix[sim_count][iteration_age-length_offset-1],
                                 data_matrix[sim_count][:])
